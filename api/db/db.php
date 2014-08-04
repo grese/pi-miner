@@ -24,7 +24,7 @@
 	   private $trend_schema = " DROP TABLE IF EXISTS trends;
 	   			CREATE TABLE trends
     			(id INTEGER PRIMARY KEY AUTOINCREMENT,
-    			date DATETIME,
+    			collected DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     			type CHAR(25),
     			value TEXT,
     			deviceID INT,

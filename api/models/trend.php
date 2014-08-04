@@ -9,25 +9,12 @@ class Trend extends Model
 {
 	
 	public $id;
-	public $date;
+	public $collected;
 	public $type;
 	public $value;
 	public $deviceID;
 	public $deviceName;
 	public $deviceEnabled;
-	
-	public function validation(){
-		$this->validate(new InclusionIn(
-            array(
-                "field"  => "type",
-                "domain" => array("SUMMARY", "MINER")
-            )
-        ));
-        
-        if ($this->validationHasFailed() == true) {
-            return false;
-        }
-	}
 	
 	public function getSource(){
 		return 'trends';

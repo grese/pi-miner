@@ -1,5 +1,8 @@
 <?php
 require_once(__DIR__.'/cgminer-api.php');
+
+date_default_timezone_set('America/Los_Angeles');
+
 // Use Loader() to autoload our model
 $loader = new \Phalcon\Loader();
 $loader->registerDirs(array(
@@ -144,8 +147,8 @@ $app->put('/users/{id:[0-9]+}', function($id) use ($app) {
 // ===================================================================== 
 //   POOLS ROUTES:
 // ===================================================================== 
-$app->get('/pools', function() use ($app) {
-	$phql = "SELECT * FROM Pool";
+function write_pools_config_to_file($app){
+	$phql = "SELECT * FROM Pool WHERE enabled = 1";
 	$pools = $app->modelsManager->executeQuery($phql);
 	$data = array();
 	foreach($pools as $pool){
@@ -156,6 +159,37 @@ $app->get('/pools', function() use ($app) {
 			'username' => $pool->username,
 			'password' => $pool->password,
 			'enabled' => $pool->enabled
+		);
+	}
+	$config = array(
+		"pools"=> $data,
+        "api-listen" => true,
+        "api-port" => "4028",
+        "expiry" => "120",
+        "failover-only" => true,
+        "log" => "5",
+        "queue" => "2",
+        "scan-time" => "60",
+        "worktime" => true,
+        "shares" => "0",
+        "kernel-path" => "/usr/local/bin",
+        "api-allow" => "W:127.0.0.1"
+	);
+	file_put_contents(__DIR__.'/../config/miner.config', json_encode($config));
+}
+$app->get('/pools', function() use ($app) {
+	$phql = "SELECT * FROM Pool";
+	$pools = $app->modelsManager->executeQuery($phql);
+	$data = array();
+	foreach($pools as $pool){
+		$enabled = ($pool->enabled == "1") ? true : false;
+		$data[] = array(
+			'id' => $pool->id,
+			'name'=>$pool->name,
+			'url'=>$pool->url,
+			'username' => $pool->username,
+			'password' => $pool->password,
+			'enabled' => $enabled
 		);
 	}
 	echo json_encode($data);
@@ -171,6 +205,7 @@ $app->get('/pools/{id:[0-9]+}', function($id) use ($app) {
 	if($pool == false){
 		$response->setJsonContent(array());
 	}else{
+		$enabled = ($pool->enabled == "1") ? true : false;
 		$response->setJsonContent(array(
             'pool' => array(
                 'id' => $pool->id,
@@ -178,7 +213,7 @@ $app->get('/pools/{id:[0-9]+}', function($id) use ($app) {
 				'url'=>$pool->url,
 				'username' => $pool->username,
 				'password' => $pool->password,
-				'enabled' => $pool->enabled
+				'enabled' => $enabled
             )
         ));
 	}
@@ -189,13 +224,13 @@ $app->post('/pools', function() use ($app) {
 	$pool = $body->pool;
 
     $phql = "INSERT INTO Pool (name, url, username, password, enabled) VALUES (:name:, :url:, :username:, :password:, :enabled:)";
-
+	$enabled = ($pool->enabled == true) ? "1" : "0";
     $status = $app->modelsManager->executeQuery($phql, array(
         'name' => $pool->name,
         'url' => $pool->url,
         'username' => $pool->username,
         'password' => $pool->password,
-        'enabled' => $pool->enabled
+        'enabled' => $enabled
     ));
 
     $response = new Phalcon\Http\Response();
@@ -211,12 +246,13 @@ $app->post('/pools', function() use ($app) {
         }
         $response->setJsonContent(array('status' => 'ERROR', 'messages' => $errors));
     }
+    write_pools_config_to_file($app);
     return $response;
 });
 $app->put('/pools/{id:[0-9]+}', function($id) use ($app) {
 	$body = $app->request->getJsonRawBody();
 	$pool = $body->pool;
-	
+	$enabled = ($pool->enabled == true) ? "1" : "0";
     $phql = "UPDATE Pool SET name = :name:, url = :url:, username = :username:, password = :password:, enabled = :enabled: WHERE id = :id:";
     $status = $app->modelsManager->executeQuery($phql, array(
         'id' => $id,
@@ -224,7 +260,7 @@ $app->put('/pools/{id:[0-9]+}', function($id) use ($app) {
         'url' => $pool->url,
         'username' => $pool->username,
         'password' => $pool->password,
-        'enabled' => $pool->enabled
+        'enabled' => $enabled
     ));
 
     $response = new Phalcon\Http\Response();
@@ -239,6 +275,7 @@ $app->put('/pools/{id:[0-9]+}', function($id) use ($app) {
         }
         $response->setJsonContent(array('status' => 'ERROR', 'messages' => $errors));
     }
+    write_pools_config_to_file($app);
     return $response;
 });
 $app->delete('/pools/{id:[0-9]+}', function($id) use ($app) {
@@ -258,6 +295,7 @@ $app->delete('/pools/{id:[0-9]+}', function($id) use ($app) {
         }
         $response->setJsonContent(array('status' => 'ERROR', 'messages' => $errors));
     }
+    write_pools_config_to_file($app);
     return $response;
 });
 
@@ -266,6 +304,29 @@ $app->delete('/pools/{id:[0-9]+}', function($id) use ($app) {
 // ===================================================================== 
 //   SETTINGS ROUTES:
 // ===================================================================== 
+function write_setting_to_file($type, $setting){
+	$script = __DIR__.'/analytics.sh';
+	if($type === 'MINER_CONFIG'){
+		file_put_contents(__DIR__.'/../config/custom.config', $setting->config);
+	}else if($type === 'ANALYTICS_CONFIG'){
+			$enabled = $setting->dataCollectionEnabled;
+			$seconds = $setting->dataInterval;
+			
+			if($enabled){
+				if($seconds <= 60){
+					$repeats = 60 / $seconds;
+					$cron = "*/1 * * * * ".$script." ".$seconds." ".$repeats;
+				}else{
+					$minutes = floor($seconds / 60);
+					$cron = "*/".$minutes." * * * * ".$script;	
+				}	
+			}else{
+				$cron = "";
+			}
+		file_put_contents(__DIR__.'/../config/trend.cron', $cron);
+	}
+}
+
 $app->get('/settings[/]?{type:[A-Z_]*}', function() use ($app) {
 	
 	$type = $app->request->get('type');
@@ -311,7 +372,7 @@ $app->get('/settings/{id:[0-9]+}', function($id) use ($app) {
 $app->post('/settings', function() use ($app) {
 	$body = $app->request->getJsonRawBody();
 	$setting = $body->setting;
-	$setting_value = addslashes(json_encode($setting->value));
+	$setting_value = json_encode($setting->value);
 	$phql = "INSERT INTO Setting (type, value) VALUES (:type:, :value:)";
 	$status = $app->modelsManager->executeQuery($phql, array(
         'type' => $setting->type,
@@ -323,6 +384,7 @@ $app->post('/settings', function() use ($app) {
         $response->setStatusCode(201, "Created");
         $setting->id = $status->getModel()->id;
         $response->setJsonContent($setting);
+        write_setting_to_file($setting->type, $setting->value);
     } else {
         $response->setStatusCode(409, "Conflict");
         $errors = array();
@@ -337,7 +399,7 @@ $app->post('/settings', function() use ($app) {
 $app->put('/settings/{id}', function($id) use ($app) {
 	$body = $app->request->getJsonRawBody();
 	$setting = $body->setting;
-	$setting_value = addslashes(json_encode($setting->value));
+	$setting_value = json_encode($setting->value);
     $phql = "UPDATE Setting SET type = :type:, value = :value: WHERE id = :id:";
     $status = $app->modelsManager->executeQuery($phql, array(
         'id' => $id,
@@ -348,6 +410,7 @@ $app->put('/settings/{id}', function($id) use ($app) {
     if ($status->success() == true) {
     	$setting->id = $id;
 		$response->setJsonContent($setting);
+		write_setting_to_file($setting->type, $setting->value);
     } else {
         $response->setStatusCode(409, "Conflict");
         $errors = array();
@@ -371,24 +434,63 @@ $app->get('/trends[/]?{type:[A-Z_]*}?{startDate}?{endDate}', function() use ($ap
 	$start = $app->request->get('startDate');
 	$end = $app->request->get('endDate');
 	
+	$unixStart = strtotime($start);
+	$unixEnd = strtotime($end);
+	
 	$phql = "SELECT * FROM Trend";
 	if($type){
-		$phql .= " WHERE type = '".$type."'";
+		$phql .= " WHERE type = '".$type."' AND (CAST(collected AS INTEGER) > $unixStart ) AND (CAST(collected AS INTEGER) < $unixEnd )";
 	}
 	$trends = $app->modelsManager->executeQuery($phql);
 	$data = array();
 	foreach($trends as $trend){
 		$data[] = array(
 			'id' => $trend->id,
-			'date'=>$trend->date,
+			'collected'=>$trend->collected,
 			'type' => $trend->type,
-			'value' => $trend->value,
+			'value' => json_decode($trend->value),
 			'deviceID' => $trend->deviceID,
 			'deviceName' => $trend->deviceName,
 			'deviceEnabled' => $trend->deviceEnabled
 		);
 	}
 	echo json_encode($data);
+});
+
+$app->get('/trends/collect', function() use ($app){
+	$cgMinerAPI = new CGMinerAPI();
+	$summaryTrend = $cgMinerAPI->request('summary');
+	$devTrends = $cgMinerAPI->request('devs');
+	
+	$phql = "INSERT INTO Trend (type, value, collected, deviceID, deviceName, deviceEnabled) VALUES (:type:, :value:, :collected:, :deviceID:, :deviceName:, :deviceEnabled:)";
+	
+	$summary_str = json_encode($summaryTrend);
+	$app->modelsManager->executeQuery($phql, array(
+		'type'=>'SUMMARY',
+		'value'=>$summary_str,
+		'collected'=>time(),
+		'deviceID'=>null,
+		'deviceName'=>null,
+		'deviceEnabled'=>null
+	));
+		
+		
+	for($i=0; $i<count($devTrends); $i++){
+		$dev = $devTrends[$i];
+		$dev_str = json_encode($dev);
+		$Enabled = $dev->Enabled;
+		$Name = $dev->Name;
+		$ID = $dev->ID;
+		$app->modelsManager->executeQuery($phql, array(
+			'type'=>'MINER',
+			'value'=>$dev_str,
+			'collected'=>time(),
+			'deviceID'=>$ID,
+			'deviceName'=>$Name,
+			'deviceEnabled'=>$Enabled
+		));
+	}
+	echo 'Inserted summary and miner trends to DB';
 });
 
 
