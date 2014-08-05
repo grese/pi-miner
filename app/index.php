@@ -57,7 +57,7 @@ function destroySession($app){
 }
 
 $app->get('[/]{path}', function($path) use ($app){
-	echo serveStatic('index.html');
+	echo serveStatic('app.html');
 });
 
 $app->get('/api/cgminer/{command}', function($command){
