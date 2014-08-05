@@ -27,63 +27,79 @@ $di->setShared('session', function() {
 //Create and bind the DI to the application
 $app = new \Phalcon\Mvc\Micro($di);
 
+function serveStatic($file){
+	$html = file_get_contents(__DIR__.'/'.$file);
+	return $html;
+}
 
-/*$app->before(function() use ($app) {
-    if ($app->session->get('token') == false) {
-        return false;
+function isLoggedIn($app){
+    return $app->session->get('user') && $app->session->get('token');
+}
+
+function createSession($app, $user){
+    $salty = "GRESELIGHTNING_1211";
+    $token = md5($user['username'].$salty);
+    $app->session->set('token', $token);
+    $app->session->set('user', $user);
+    return $token;
+}
+function destroySession($app){
+    if($app->session->isStarted()){
+        if($app->session->has('user')){
+            $app->session->remove('user');
+        }
+        if($app->session->has('token')){
+            $app->session->remove('token');
+        }
+        $app->session->destroy();
     }
-    return true;
-});*/
+    return false;
+}
 
-
-$app->get('[/]', function(){
-	file_get_contents('./index.html');
+$app->get('[/]{path}', function($path) use ($app){
+	echo serveStatic('index.html');
 });
 
-$app->get('/cgminer/{command}', function($command){
+$app->get('/api/cgminer/{command}', function($command){
 	$cgMinerAPI = new CGMinerAPI();
 	$result = $cgMinerAPI->request($command);
 	echo json_encode($result);
 });
 
-$app->post('/login', function() use ($app){
-		$salty = "GRESELIGHTNING_1211";
-		$username = $app->request->get('username');
+$app->post('/api/login', function() use ($app){
+        $username = $app->request->get('username');
 		$password = $app->request->get('password');
 		$phql = "SELECT * FROM User WHERE username = :username: AND password = :password:";
-		
+
 		$user = $app->modelsManager->executeQuery($phql, array(
 			'username'=>$username,
 			'password'=>$password
 		))->getFirst();	
 		
-		$login_result = 'FAILURE';
-		$token = null;
 		if($user){
 			$login_result = 'SUCCESS';
-			$token = $app->session->get('token');
-			if(!$token){
-				$token = md5($username.$salty);
-				$app->session->set('token', $token);
-			}
 			$user = array('username'=>$user->username, 'id'=>$user->id);
+			$token = createSession($app, $user);
 		}else{
+			$login_result = 'FAILURE';
+			$token = null;
 			$user = null;
 		}
+		
 		$response = new Phalcon\Http\Response();
 		$response->setJsonContent(array('result' => $login_result, 'token'=>$token, 'user'=>$user));
 		return $response;
 });
-$app->get('/logout', function() use ($app){
-	$app->session->destroy();
-	return false;
+$app->get('/api/logout', function() use ($app){
+    destroySession($app);
+    return true;
 });
 
 
 // ===================================================================== 
 //   USERS ROUTES:
 // ===================================================================== 
-$app->get('/users', function() use ($app) {
+$app->get('/api/users', function() use ($app) {
 	$phql = "SELECT * FROM User";
 	$users = $app->modelsManager->executeQuery($phql);
 	$data = array();
@@ -96,7 +112,7 @@ $app->get('/users', function() use ($app) {
 	}
 	echo json_encode($data);
 });
-$app->get('/users/{id:[0-9]+}', function($id) use ($app) {
+$app->get('/api/users/{id:[0-9]+}', function($id) use ($app) {
 	$phql = "SELECT * FROM User WHERE id = :id:";
 	$user = $app->modelsManager->executeQuery($phql, array(
 		'id'=>$id
@@ -117,7 +133,7 @@ $app->get('/users/{id:[0-9]+}', function($id) use ($app) {
 	}
 	return $response;
 });
-$app->put('/users/{id:[0-9]+}', function($id) use ($app) {
+$app->put('/api/users/{id:[0-9]+}', function($id) use ($app) {
 	$body = $app->request->getJsonRawBody();
 	$user = $body->user;
     $phql = "UPDATE User SET username = :username:, password = :password: WHERE id = :id:";
@@ -177,7 +193,7 @@ function write_pools_config_to_file($app){
 	);
 	file_put_contents(__DIR__.'/../config/miner.config', json_encode($config));
 }
-$app->get('/pools', function() use ($app) {
+$app->get('/api/pools', function() use ($app) {
 	$phql = "SELECT * FROM Pool";
 	$pools = $app->modelsManager->executeQuery($phql);
 	$data = array();
@@ -194,7 +210,7 @@ $app->get('/pools', function() use ($app) {
 	}
 	echo json_encode($data);
 });
-$app->get('/pools/{id:[0-9]+}', function($id) use ($app) {
+$app->get('/api/pools/{id:[0-9]+}', function($id) use ($app) {
 	$phql = "SELECT * FROM Pool WHERE id = :id:";
 	$pool = $app->modelsManager->executeQuery($phql, array(
 		'id'=>$id
@@ -219,7 +235,7 @@ $app->get('/pools/{id:[0-9]+}', function($id) use ($app) {
 	}
 	return $response;
 });
-$app->post('/pools', function() use ($app) {
+$app->post('/api/pools', function() use ($app) {
 	$body = $app->request->getJsonRawBody();
 	$pool = $body->pool;
 
@@ -249,20 +265,19 @@ $app->post('/pools', function() use ($app) {
     write_pools_config_to_file($app);
     return $response;
 });
-$app->put('/pools/{id:[0-9]+}', function($id) use ($app) {
+$app->put('/api/pools/{id:[0-9]+}', function($id) use ($app) {
 	$body = $app->request->getJsonRawBody();
 	$pool = $body->pool;
 	$enabled = ($pool->enabled == true) ? "1" : "0";
-    $phql = "UPDATE Pool SET name = :name:, url = :url:, username = :username:, password = :password:, enabled = :enabled: WHERE id = :id:";
-    $status = $app->modelsManager->executeQuery($phql, array(
+	$phql = "UPDATE Pool SET name = :name:, url = :url:, username = :username:, password = :password:, enabled = :enabled: WHERE id = :id:";
+	$status = $app->modelsManager->executeQuery($phql, array(
         'id' => $id,
         'name' => $pool->name,
         'url' => $pool->url,
-        'username' => $pool->username,
+        'username' => addslashes($pool->username),
         'password' => $pool->password,
         'enabled' => $enabled
     ));
-
     $response = new Phalcon\Http\Response();
     if ($status->success() == true) {
     	$pool->id = $id;
@@ -278,7 +293,7 @@ $app->put('/pools/{id:[0-9]+}', function($id) use ($app) {
     write_pools_config_to_file($app);
     return $response;
 });
-$app->delete('/pools/{id:[0-9]+}', function($id) use ($app) {
+$app->delete('/api/pools/{id:[0-9]+}', function($id) use ($app) {
 	$phql = "DELETE FROM Pool WHERE id = :id:";
     $status = $app->modelsManager->executeQuery($phql, array(
         'id' => $id
@@ -327,7 +342,7 @@ function write_setting_to_file($type, $setting){
 	}
 }
 
-$app->get('/settings[/]?{type:[A-Z_]*}', function() use ($app) {
+$app->get('/api/settings[/]?{type:[A-Z_]*}', function() use ($app) {
 	
 	$type = $app->request->get('type');
 	
@@ -347,7 +362,7 @@ $app->get('/settings[/]?{type:[A-Z_]*}', function() use ($app) {
 	}
 	echo json_encode($data);
 });
-$app->get('/settings/{id:[0-9]+}', function($id) use ($app) {
+$app->get('/api/settings/{id:[0-9]+}', function($id) use ($app) {
 	$phql = "SELECT * FROM Setting WHERE id = :id:";
 	$setting = $app->modelsManager->executeQuery($phql, array(
 		'id'=>$id
@@ -369,7 +384,7 @@ $app->get('/settings/{id:[0-9]+}', function($id) use ($app) {
 	}
 	return $response;
 });
-$app->post('/settings', function() use ($app) {
+$app->post('/api/settings', function() use ($app) {
 	$body = $app->request->getJsonRawBody();
 	$setting = $body->setting;
 	$setting_value = json_encode($setting->value);
@@ -396,7 +411,7 @@ $app->post('/settings', function() use ($app) {
 
     return $response;
 });
-$app->put('/settings/{id}', function($id) use ($app) {
+$app->put('/api/settings/{id}', function($id) use ($app) {
 	$body = $app->request->getJsonRawBody();
 	$setting = $body->setting;
 	$setting_value = json_encode($setting->value);
@@ -428,7 +443,7 @@ $app->put('/settings/{id}', function($id) use ($app) {
 // ===================================================================== 
 //   TRENDS ROUTES:
 // ===================================================================== 
-$app->get('/trends[/]?{type:[A-Z_]*}?{startDate}?{endDate}', function() use ($app) {
+$app->get('/api/trends[/]?{type:[A-Z_]*}?{startDate}?{endDate}', function() use ($app) {
 	
 	$type = $app->request->get('type');
 	$start = $app->request->get('startDate');
@@ -457,7 +472,7 @@ $app->get('/trends[/]?{type:[A-Z_]*}?{startDate}?{endDate}', function() use ($ap
 	echo json_encode($data);
 });
 
-$app->get('/trends/collect', function() use ($app){
+$app->get('/api/trends/collect', function() use ($app){
 	$cgMinerAPI = new CGMinerAPI();
 	$summaryTrend = $cgMinerAPI->request('summary');
 	$devTrends = $cgMinerAPI->request('devs');
