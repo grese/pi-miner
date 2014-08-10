@@ -25,5 +25,5 @@ else
     fi
 
     # Start the miner...
-    nohup ../cgminer-4.4.1/cgminer --config $config_file >$miner_log 2>&1&
+    nohup ../../cgminer-4.4.1/cgminer --config $config_file >$miner_log 2>&1&
 fi
