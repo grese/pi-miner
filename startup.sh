@@ -17,7 +17,7 @@ if [ -n "$custom_config" ]; then
     # If the miner config is not empty... Use it instead of default.
 
     # Start the miner...
-    eval `nohup $custom_config &> $miner_log`
+    eval `sudo nohup $custom_config &> $miner_log`
 else
     # The custom_config file is empty so we will use the miner config...
 
@@ -28,5 +28,5 @@ else
     fi
 
     # Start the miner...
-    nohup ../cgminer/cgminer-4.4.1/cgminer --config $config_file >$miner_log 2>&1&
+    sudo nohup ../cgminer/cgminer-4.4.1/cgminer --config $config_file >$miner_log 2>&1&
 fi
