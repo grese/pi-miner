@@ -1,15 +1,20 @@
 <?php
    class PiMinerDB extends SQLite3
    {
-   function __construct()
-       {
-           $this->open(__DIR__.'/pi-miner.db');
+        function __construct()
+		{
+		  $dbDir = __DIR__."/../../data";
+          $dbFile = __DIR__."/../../data/pi-miner.db";
+          if (!file_exists($dbDir)) {
+               mkdir($dbDir, 0755, true);
+          }
+          $this->open($dbFile);
        }
        
 	   function __destruct() {
         	$this->close();
 		}
-		
+
        private $setting_schema = " CREATE TABLE IF NOT EXISTS settings
 	      		(id INTEGER PRIMARY KEY AUTOINCREMENT,
 	      		type CHAR(25) NOT NULL,
