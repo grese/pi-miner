@@ -481,8 +481,7 @@ $app->get('/api/trends[/]?{type:[A-Z_]*}?{startDate}?{endDate}', function() use 
 });
 
 $app->get('/api/trends/collect', function() use ($app){
-	if(checkAuthToken($app)){
-		$cgMinerAPI = new CGMinerAPI();
+	$cgMinerAPI = new CGMinerAPI();
 		$summaryTrend = $cgMinerAPI->request('summary');
 		$devTrends = $cgMinerAPI->request('devs');
 		
@@ -515,7 +514,6 @@ $app->get('/api/trends/collect', function() use ($app){
 			));
 		}
 		echo 'Inserted summary and miner trends to DB';
-	}
 });
 
 // ===================================================================== 
