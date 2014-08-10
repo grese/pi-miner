@@ -155,12 +155,9 @@ function write_pools_config_to_file($app){
 	foreach($pools as $pool){
 		$url = preg_replace('#^https?://#', '', $pool->url);
 		$data[] = array(
-			'id' => $pool->id,
-			'name'=>$pool->name,
 			'url'=>$url,
-			'username' => $pool->username,
-			'password' => $pool->password,
-			'enabled' => $pool->enabled
+			'user' => $pool->username,
+			'pass' => $pool->password
 		);
 	}
 	$config = array(
