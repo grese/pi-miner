@@ -504,7 +504,7 @@ $app->get('/api/trends/collect', function() use ($app){
 			$dev_str = json_encode($dev);
 			$Enabled = $dev->Enabled;
 			$Name = $dev->Name;
-			$ID = $dev->ID;
+			$ID = $dev->ASC;
 			$app->modelsManager->executeQuery($phql, array(
 				'type'=>'MINER',
 				'value'=>$dev_str,
