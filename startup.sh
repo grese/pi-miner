@@ -7,6 +7,9 @@ custom_file="$config_dir/custom.conf"
 custom_config=""
 miner_log="./logs/cgminer.log"
 
+if [ ! -f $custom_file ]; then
+    touch $custom_file
+fi
 read -r $custom_config<$custom_file
 
 
