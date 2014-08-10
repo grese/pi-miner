@@ -2,7 +2,7 @@
 
 config_dir="./config"
 config_file="$config_dir/miner.conf"
-default_config='{"pools":[{"id":"1","name":"Slush's Pool","url":"stratum.bitcoin.cz:3333","username":"grese.piminer","password":"schmiles","enabled":"1"}],"api-listen":true,"api-port":"4028","expiry":"120","failover-only":true,"log":"5","queue":"2","scan-time":"60","worktime":true,"shares":"0","kernel-path":"\/usr\/local\/bin","api-allow":"W:127.0.0.1"}'
+default_config="{'pools':[{'id':'1','name':'Slush's Pool','url':'stratum.bitcoin.cz:3333','username':'grese.piminer','password':'schmiles','enabled':'1'}],'api-listen':true,'api-port':'4028','expiry':'120','failover-only':true,'log':'5','queue':'2','scan-time':'60','worktime':true,'shares':'0','api-allow':'W:127.0.0.1'}"
 custom_file="$config_dir/custom.conf"
 custom_config=""
 miner_log="./logs/cgminer.log"
