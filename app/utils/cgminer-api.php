@@ -38,7 +38,7 @@ class CGMinerAPI{
 		 return $line;	
 	}
 	
-	public function request($cmd)
+	function request($cmd)
 	{
 	 $socket = $this->getsock('127.0.0.1', 4028);
 	 if ($socket != null)
@@ -52,13 +52,15 @@ class CGMinerAPI{
 			echo "WARN: '$cmd' returned nothing\n";
 			return $line;
 		}
-
+	
 		if (substr($line,0,1) == '{')
 			return json_decode($line, true);
 	
 		$data = array();
 	
 		$objs = explode('|', $line);
+		
+		
 		foreach ($objs as $obj)
 		{
 			if (strlen($obj) > 0)
@@ -66,10 +68,12 @@ class CGMinerAPI{
 				$items = explode(',', $obj);
 				$item = $items[0];
 				$id = explode('=', $items[0], 2);
-				if (count($id) == 1 or !ctype_digit($id[1]))
+				if (count($id) == 1 or !ctype_digit($id[1])){
 					$name = $id[0];
-				else
+				}else{
 					$name = $id[0].$id[1];
+				}
+					
 	
 				if (strlen($name) == 0)
 					$name = 'null';
@@ -98,26 +102,32 @@ class CGMinerAPI{
 	
 		if($cmd == 'summary'){
 			return $this->parseSummary($data);
-		}else if($cmd == 'devs'){
-			return $this->parseDevs($data);
+		}else if($cmd == 'devs' || $cmd == 'devdetails'){
+			return $this->parseDevs($data, $cmd);
 		}else{
-			return $data;	
+			return $data;
 		}
 	 }
 	
-	 return 'ERROR';
-	 }
+	 return null;
+	}
 	 
 	 
 	 private function parseSummary($result){
 		 return $result['SUMMARY'];
 	 }
 	 
-	 private function parseDevs($result){
+	 private function parseDevs($result, $cmd){
 		 unset($result['STATUS']);
 		 $devs = array();
 		 foreach($result as $name => $dev){
-			 array_push($devs, $dev);
+			$dev['DeviceName'] = $dev['Name'].$dev['ID'];
+		 	if($cmd == 'devdetails'){
+			 	$dev['DeviceID'] = $dev['DEVDETAILS'];
+		 	}else{
+				$dev['DeviceID'] = $name;			 	
+		 	}
+			array_push($devs, $dev);
 		 }
 		 return $devs;
 	 }

@@ -6,9 +6,10 @@
 		  $dbDir = __DIR__."/../../data";
           $dbFile = __DIR__."/../../data/pi-miner.db";
           if (!file_exists($dbDir)) {
-               mkdir($dbDir, 0755, true);
+               mkdir($dbDir, 0777, true);
           }
           $this->open($dbFile);
+          chmod($dbFile, 0777);
        }
        
 	   function __destruct() {

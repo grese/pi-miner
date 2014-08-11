@@ -41,8 +41,34 @@ $app->get('[/]{path}', function($path) use ($app){
 
 $app->get('/api/cgminer/{command}', function($command) use ($app){
 	if(checkAuthToken($app)){
+		$result = null;
 		$cgMinerAPI = new CGMinerAPI();
-		$result = $cgMinerAPI->request($command);
+		
+		if($command === 'devices'){
+			$devices = $cgMinerAPI->request('devs');	
+			$details = $cgMinerAPI->request('devdetails');
+			$devs = array();
+			for($i=0; $i<count($devices); $i++){
+				$dev = (object) $devices[$i];
+				$det = null;
+				for($j=0; $j<count($details); $j++){
+					if($details[$j]['DeviceName'] === $dev->DeviceName){
+						$det = (object) $details[$j];
+					}
+				}
+				if($det != null){
+					$dev->Driver = $det->Driver;
+					$dev->Kernel = $det->Kernel;
+					$dev->Model = $det->Model;
+					$dev->{'Device Path'} = $det->{'Device Path'};
+					$dev->DetailID = $det->DeviceID;
+				}
+				array_push($devs, $dev);
+			}
+			$result = $devs;
+		}else{
+			$result = $cgMinerAPI->request($command);
+		}
 		echo json_encode($result);	
 	}
 });
@@ -459,9 +485,7 @@ $app->get('/api/trends[/]?{type:[A-Z_]*}?{startDate}?{endDate}', function() use 
 			$phql .= " WHERE type = '".$type."'";
 		}
 		if($start && $end){
-			$unixStart = time($start);
-			$unixEnd = time($end);
-			$phql .= " AND (CAST(collected AS INTEGER) > ".$unixStart." ) AND (CAST(collected AS INTEGER) < ".$unixEnd." )";
+			$phql .= " AND ((CAST(collected AS INTEGER) > ".$start." ) AND (CAST(collected AS INTEGER) < ".$end." ))";
 		}
 		$trends = $app->modelsManager->executeQuery($phql);
 		$data = array();
@@ -481,7 +505,7 @@ $app->get('/api/trends[/]?{type:[A-Z_]*}?{startDate}?{endDate}', function() use 
 });
 
 $app->get('/api/trends/collect', function() use ($app){
-	$cgMinerAPI = new CGMinerAPI();
+		$cgMinerAPI = new CGMinerAPI();
 		$summaryTrend = $cgMinerAPI->request('summary');
 		$devTrends = $cgMinerAPI->request('devs');
 		
@@ -492,18 +516,18 @@ $app->get('/api/trends/collect', function() use ($app){
 			'type'=>'SUMMARY',
 			'value'=>$summary_str,
 			'collected'=>time(),
-			'deviceID'=>null,
-			'deviceName'=>null,
+			'deviceID'=>'SUMMARY',
+			'deviceName'=>'SUMMARY',
 			'deviceEnabled'=>null
 		));
-			
+		
 			
 		for($i=0; $i<count($devTrends); $i++){
-			$dev = $devTrends[$i];
+			$dev = (object) $devTrends[$i];
 			$dev_str = json_encode($dev);
 			$Enabled = $dev->Enabled;
-			$Name = $dev->Name;
-			$ID = $dev->ASC;
+			$Name = $dev->DeviceName;
+			$ID = $dev->DeviceID;
 			$app->modelsManager->executeQuery($phql, array(
 				'type'=>'MINER',
 				'value'=>$dev_str,
