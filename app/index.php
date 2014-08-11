@@ -530,34 +530,36 @@ $app->get('/api/trends/collect', function() use ($app){
 		$cgMinerAPI = new CGMinerAPI();
 		$summaryTrend = $cgMinerAPI->request('summary');
 		$devTrends = $cgMinerAPI->request('devs');
-		
+
 		$phql = "INSERT INTO Trend (type, value, collected, deviceID, deviceName, deviceEnabled) VALUES (:type:, :value:, :collected:, :deviceID:, :deviceName:, :deviceEnabled:)";
 		
-		$summary_str = json_encode($summaryTrend);
-		$app->modelsManager->executeQuery($phql, array(
-			'type'=>'SUMMARY',
-			'value'=>$summary_str,
-			'collected'=>time(),
-			'deviceID'=>'SUMMARY',
-			'deviceName'=>'SUMMARY',
-			'deviceEnabled'=>null
-		));
-		
-			
-		for($i=0; $i<count($devTrends); $i++){
-			$dev = (object) $devTrends[$i];
-			$dev_str = json_encode($dev);
-			$Enabled = $dev->Enabled;
-			$Name = $dev->DeviceName;
-			$ID = $dev->DeviceID;
+		if($summaryTrend != null && $summaryTrend != 'ERROR' && count($summaryTrend) > 0){
+			$summary_str = json_encode($summaryTrend);
 			$app->modelsManager->executeQuery($phql, array(
-				'type'=>'MINER',
-				'value'=>$dev_str,
+				'type'=>'SUMMARY',
+				'value'=>$summary_str,
 				'collected'=>time(),
-				'deviceID'=>$ID,
-				'deviceName'=>$Name,
-				'deviceEnabled'=>$Enabled
-			));
+				'deviceID'=>'SUMMARY',
+				'deviceName'=>'SUMMARY',
+				'deviceEnabled'=>null
+			));	
+		}
+		if($devTrends != null && $devTrends != 'ERROR' && count($devTrends) > 0){
+			for($i=0; $i<count($devTrends); $i++){
+				$dev = (object) $devTrends[$i];
+				$dev_str = json_encode($dev);
+				$Enabled = $dev->Enabled;
+				$Name = $dev->DeviceName;
+				$ID = $dev->DeviceID;
+				$app->modelsManager->executeQuery($phql, array(
+					'type'=>'MINER',
+					'value'=>$dev_str,
+					'collected'=>time(),
+					'deviceID'=>$ID,
+					'deviceName'=>$Name,
+					'deviceEnabled'=>$Enabled
+				));
+			}	
 		}
 		echo 'Inserted summary and miner trends to DB';
 });
