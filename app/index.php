@@ -200,7 +200,20 @@ function write_pools_config_to_file($app){
         "kernel-path" => "/usr/local/bin",
         "api-allow" => "W:127.0.0.1"
 	);
-	file_put_contents(__DIR__.'/../config/miner.config', json_encode($config));
+	
+	$configDIR = __DIR__.'/../config';
+	$configFile = $configDIR.'/miner.config';
+	
+	if (!file_exists($configDIR)) {
+    	mkdir($configDIR, 0777, true);
+	}
+	chmod($configDIR, 0777);
+	if (!file_exists($configFile)) {
+    	touch($configFile);
+	}
+	chmod($configFile, 0777);
+	
+	file_put_contents($configFile, json_encode($config));
 }
 $app->get('/api/pools', function() use ($app) {
 	if(checkAuthToken($app)){
@@ -339,11 +352,13 @@ $app->delete('/api/pools/{id:[0-9]+}', function($id) use ($app) {
 //   SETTINGS ROUTES:
 // ===================================================================== 
 function write_setting_to_file($type, $setting){
-	$config_DIR = __DIR__.'/../config';
+	$configDIR = __DIR__.'/../config';
+	$cronFile = $configDIR.'/trend.cron';
+	$customFile = $configDIR.'/custom.config';
 
 	$script = __DIR__.'/analytics.sh';
 	if($type === 'MINER_CONFIG'){
-		file_put_contents(__DIR__.'/../config/custom.config', $setting->config);
+		file_put_contents($customFile, $setting->config);
 	}else if($type === 'ANALYTICS_CONFIG'){
 			$enabled = $setting->dataCollectionEnabled;
 			$seconds = $setting->dataInterval;
@@ -359,10 +374,17 @@ function write_setting_to_file($type, $setting){
 			}else{
 				$cron = "";
 			}
-		if (!file_exists($config_DIR)) {
-			mkdir($config_DIR, 0755, true);
+
+	
+		if (!file_exists($configDIR)) {
+    		mkdir($configDIR, 0777, true);
+			}
+		chmod($configDIR, 0777);
+		if (!file_exists($cronFile)) {
+    		touch($cronFile);
 		}
-		file_put_contents($config_DIR.'/trend.cron', $cron);
+		chmod($cronFile, 0777);
+		file_put_contents($cronFile, $cron);
 	}
 }
 
