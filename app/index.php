@@ -509,6 +509,9 @@ $app->get('/api/trends[/]?{type:[A-Z_]*}?{startDate}?{endDate}', function() use 
 		if($start && $end){
 			$phql .= " AND ((CAST(collected AS INTEGER) > ".$start." ) AND (CAST(collected AS INTEGER) < ".$end." ))";
 		}
+		
+		$phql.=' ORDER BY collected ASC';
+		
 		$trends = $app->modelsManager->executeQuery($phql);
 		$data = array();
 		foreach($trends as $trend){
