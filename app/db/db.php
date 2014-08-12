@@ -80,7 +80,7 @@
 			   		array('type'=>'DEVICE_INFO', 'value'=>"{\"name\": \"Pi Miner\" }"),
 			   		array('type'=>'MINER_CONFIG', 'value'=>"{\"miner\": \"cgminer\" }"),
 			   		array('type'=>'EMAIL_NOTIFICATION', 'value'=>"{\"toAddress\": \"johngrese@me.com\",\"fromAddress\": \"johngrese@me.com\", \"smtpServer\": \"smtp.mail.me.com\", \"smtpAuth\": true, \"smtpAuthUsername\": \"johngrese@me.com\", \"smtpAuthPassword\": \"SchroederRock5\", \"smtpAuthPort\": 587 }"),
-			   		array('type'=>'ANALYTICS_CONFIG', 'value'=>"{\"dataCollectionEnabled\": true, \"dataInterval\": 30 }"),
+			   		array('type'=>'ANALYTICS_CONFIG', 'value'=>"{\"dataCollectionEnabled\": true, \"dataInterval\": 60 }"),
 			   		array('type'=>'PERFORMANCE_ALERT', 'value'=>"{\"enabled\": false, \"numDevices\": 1, \"numMhs\": 330}"),
 		);
 		   		foreach($settings as $setting){
