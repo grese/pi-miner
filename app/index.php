@@ -193,7 +193,7 @@ function write_pools_config_to_file($app){
         "expiry" => "120",
         "failover-only" => true,
         "log" => "5",
-        "no-pool-disable" : true,
+        "no-pool-disable" => true,
         "queue" => "2",
         "scan-time" => "60",
         "worktime" => true,
