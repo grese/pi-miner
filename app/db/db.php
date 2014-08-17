@@ -122,8 +122,8 @@
                		mkdir($configDir, 0777, true);
           	}
           	if(!file_exists($configFile)){
-          		chmod($configFile, 777);
           		file_put_contents($configFile, $configJSON);
+          		chmod($configFile, 777);
           	}
        }
    }
