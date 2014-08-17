@@ -146,12 +146,17 @@ $app->put('/api/users/{id:[0-9]+}', function($id) use ($app) {
 	if(checkAuthToken($app)){
 		$body = $app->request->getJsonRawBody();
 		$user = $body->user;
-	    $phql = "UPDATE User SET username = :username:, password = :password: WHERE id = :id:";
-	    $status = $app->modelsManager->executeQuery($phql, array(
+	    $values = array(
 	        'id' => $id,
-	        'username' => $user->username,
-	        'password' => $user->password,
-	    ));
+	        'username' => $user->username
+	    );
+	    if($user->password != null){
+	    	$phql = "UPDATE User SET username = :username:, password = :password: WHERE id = :id:";	
+	    	$values['password'] = $user->password;
+	    }else{
+	    	$phql = "UPDATE User SET username = :username: WHERE id = :id:";
+	    }
+	    $status = $app->modelsManager->executeQuery($phql, $values);
 	    $response = new Phalcon\Http\Response();
 		if ($status->success() == true) {
 			$user->password = null;
