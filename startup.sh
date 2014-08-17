@@ -7,7 +7,7 @@ custom_file="$config_dir/custom.conf"
 custom_config=""
 
 # Reset the database & config file...
-php $db_setup
+/home/pi/pi-miner/dbinit.sh
 
 if [ ! -f $custom_file ]; then
     touch $custom_file
