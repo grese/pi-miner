@@ -7,4 +7,5 @@ if(!$db){
 } else {
     echo "====== Opened PiMiner Database ======\n";
     $db->setup_db();
+    $db->init_conf();
 }
