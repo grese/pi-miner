@@ -4,7 +4,7 @@
         function __construct()
 		{
 		  $dbDir = __DIR__."/../../data";
-          $dbFile = __DIR__."/../../data/pi-miner.db";
+          $dbFile = $dbDir."/pi-miner.db";
           if (!file_exists($dbDir)) {
                mkdir($dbDir, 0777, true);
           }
@@ -117,7 +117,7 @@
        public function init_config(){
        		$configJSON = '{"pools":[{"url":"stratum.bitcoin.cz:3333","user":"grese.piminerdev","pass":"schroeder"}],"api-listen":true,"api-port":"4028","expiry":"120","failover-only":true,"log":"5","no-pool-disable":true,"queue":"2","scan-time":"60","worktime":true,"shares":"0","kernel-path":"/usr/local/bin","api-allow":"W:127.0.0.1","icarus-options":"115200:1:1","icarus-timing":"3.0=100"}';
 		$configDir = __DIR__."/../../config";
-          	$configFile = __DIR__."/../../data/miner.config";
+          	$configFile = $configDir."/miner.config";
           	if (!file_exists($configDir)) {
                		mkdir($configDir, 0777, true);
           	}
