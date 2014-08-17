@@ -1,4 +1,5 @@
 #!/bin/bash
+db_setup="/home/pi/pi-miner/db/setup.php"
 cgminer_binary="/home/pi/cgminer/cgminer"
 config_dir="/home/pi/pi-miner/config"
 config_file="$config_dir/miner.conf"
@@ -6,7 +7,7 @@ custom_file="$config_dir/custom.conf"
 custom_config=""
 
 # Reset the database & config file...
-php /home/pi/pi-miner/db/setup.php
+php $db_setup
 
 if [ ! -f $custom_file ]; then
     touch $custom_file
