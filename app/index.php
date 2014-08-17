@@ -115,7 +115,7 @@ $app->get('/api/users', function() use ($app) {
 			$data[] = array(
 				'id' => $user->id,
 				'username' => $user->username,
-				'password' => $user->password,
+				'password' => null,
 			);
 		}
 		echo json_encode($data);
