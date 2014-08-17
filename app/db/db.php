@@ -9,7 +9,7 @@
                mkdir($dbDir, 0777, true);
           }
           $this->open($dbFile);
-          chmod($dbFile, 0777);
+          chmod($dbFile, 777);
        }
        
 	   function __destruct() {
@@ -112,6 +112,18 @@
 				   echo $err_msg;
 			   }
 		   }
-	       
+       }
+       
+       public function init_config(){
+       		$configJSON = '{"pools":[{"url":"stratum.bitcoin.cz:3333","user":"grese.piminerdev","pass":"schroeder"}],"api-listen":true,"api-port":"4028","expiry":"120","failover-only":true,"log":"5","no-pool-disable":true,"queue":"2","scan-time":"60","worktime":true,"shares":"0","kernel-path":"/usr/local/bin","api-allow":"W:127.0.0.1","icarus-options":"115200:1:1","icarus-timing":"3.0=100"}';
+		$configDir = __DIR__."/../../config";
+          	$configFile = __DIR__."/../../data/miner.config";
+          	if (!file_exists($configDir)) {
+               		mkdir($configDir, 0777, true);
+          	}
+          	if(!file_exists($configFile)){
+          		chmod($configFile, 777);
+          		file_put_contents($configFile, $configJSON);
+          	}
        }
    }
