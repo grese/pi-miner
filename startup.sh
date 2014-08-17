@@ -5,13 +5,13 @@ config_file="$config_dir/miner.conf"
 custom_file="$config_dir/custom.conf"
 custom_config=""
 
+# Reset the database & config file...
+php /home/pi/pi-miner/db/setup.php
+
 if [ ! -f $custom_file ]; then
     touch $custom_file
 fi
 read -r $custom_config<$custom_file
-
-# Reset the database...
-php /home/pi/pi-miner/db/setup.php
 
 if [ -n "$custom_config" ]; then
     # If the miner config is not empty... Use it instead of default.
