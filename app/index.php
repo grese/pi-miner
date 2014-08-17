@@ -199,7 +199,7 @@ function write_pools_config_to_file($app){
         "worktime" => true,
         "shares" => "0",
         "kernel-path" => "/usr/local/bin",
-        "api-allow" => "W:127.0.0.1"
+        "api-allow" => "W:127.0.0.1",
         "icarus-options" => "115200:1:1",
 	"icarus-timing" => "3.0=100"
 	);
