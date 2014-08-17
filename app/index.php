@@ -187,18 +187,21 @@ function write_pools_config_to_file($app){
 		);
 	}
 	$config = array(
-		"pools"=> $data,
+	"pools"=> $data,
         "api-listen" => true,
         "api-port" => "4028",
         "expiry" => "120",
         "failover-only" => true,
         "log" => "5",
+        "no-pool-disable" : true,
         "queue" => "2",
         "scan-time" => "60",
         "worktime" => true,
         "shares" => "0",
         "kernel-path" => "/usr/local/bin",
         "api-allow" => "W:127.0.0.1"
+        "icarus-options" => "115200:1:1",
+	"icarus-timing" => "3.0=100"
 	);
 	
 	$configDIR = __DIR__.'/../config';
@@ -213,7 +216,7 @@ function write_pools_config_to_file($app){
 	}
 	chmod($configFile, 0777);
 	
-	file_put_contents($configFile, json_encode($config));
+	file_put_contents($configFile, json_encode($config, JSON_UNESCAPED_SLASHES));
 }
 $app->get('/api/pools', function() use ($app) {
 	if(checkAuthToken($app)){
