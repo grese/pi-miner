@@ -11,10 +11,11 @@ else
 	i=0
 	
     while [ $i -lt $repeat ]; do
-        sleep $seconds
-        #running curl command every n seconds...
+        #running curl command to api & increment counter...
         curl -X GET $apiURL
         i=$[$i+1]
+        #sleep for n seconds, then rinse & repeat if i < $repeat...
+        sleep $seconds
     done
     exit 0
 fi
