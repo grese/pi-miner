@@ -9,7 +9,7 @@
                mkdir($dbDir, 0777, true);
           }
           $this->open($dbFile);
-          chmod($dbFile, 777);
+          chmod($dbFile, 0777);
        }
        
 	   function __destruct() {
@@ -123,7 +123,7 @@
           	}
           	if(!file_exists($configFile)){
           		file_put_contents($configFile, $configJSON);
-          		chmod($configFile, 777);
+          		chmod($configFile, 0777);
           	}
        }
    }
