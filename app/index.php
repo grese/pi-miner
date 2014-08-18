@@ -80,7 +80,7 @@ $app->post('/api/login', function() use ($app){
 		
 		$user = $app->modelsManager->executeQuery($phql, array(
 			'username'=>$username,
-			'password'=>$password
+			'password'=>md5($password)
 		))->getFirst();	
 		
 		$loggedInUser = null;
@@ -150,13 +150,16 @@ $app->put('/api/users/{id:[0-9]+}', function($id) use ($app) {
 	        'id' => $id,
 	        'username' => $user->username
 	    );
+	    $phql = "UPDATE User SET username = :username: ";
 	    if($user->password != null){
-	    	$phql = "UPDATE User SET username = :username:, password = :password: WHERE id = :id:";	
-	    	$values['password'] = $user->password;
-	    }else{
-	    	$phql = "UPDATE User SET username = :username: WHERE id = :id:";
+	    	if(strlen($user->password) > 6){
+				$phql .= ", password = :password: ";
+				$values['password'] = md5($user->password);		    	
+	    	}
 	    }
+	    $phql .= " WHERE id = :id:";
 	    $status = $app->modelsManager->executeQuery($phql, $values);
+	    
 	    $response = new Phalcon\Http\Response();
 		if ($status->success() == true) {
 			$user->password = null;
@@ -206,7 +209,7 @@ function write_pools_config_to_file($app){
         "kernel-path" => "/usr/local/bin",
         "api-allow" => "W:127.0.0.1",
         "icarus-options" => "115200:1:1",
-	"icarus-timing" => "3.0=100"
+		"icarus-timing" => "3.0=100"
 	);
 	
 	$configDIR = __DIR__.'/../config';
