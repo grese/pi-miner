@@ -2,6 +2,7 @@
 require_once(__DIR__.'/utils/helpers.php');
 require_once(__DIR__.'/utils/auth.php');
 require_once(__DIR__.'/utils/cgminer-api.php');
+require_once(__DIR__.'/utils/crontab.php');
 
 date_default_timezone_set('America/Los_Angeles');
 
@@ -364,7 +365,6 @@ $app->delete('/api/pools/{id:[0-9]+}', function($id) use ($app) {
 // ===================================================================== 
 function write_setting_to_file($type, $setting){
 	$configDIR = __DIR__.'/../config';
-	$cronFile = $configDIR.'/trend.cron';
 	$customFile = $configDIR.'/custom.config';
 
 	$script = __DIR__.'/analytics.sh';
@@ -375,27 +375,33 @@ function write_setting_to_file($type, $setting){
 			$seconds = $setting->dataInterval;
 			
 			if($enabled){
+				$schedule = array();
 				if($seconds <= 60){
 					$repeats = 60 / $seconds;
-					$cron = "*/1 * * * * ".$script." ".$seconds." ".$repeats;
+					$schedule = array(
+						"*/1",
+						"*",
+						"*",
+						"*",
+						"*"
+					);
+					$script .= " ".$seconds." ".$repeats;
 				}else{
 					$minutes = floor($seconds / 60);
-					$cron = $minutes." * * * * ".$script;	
+					$schedule = array(
+						"*/".$minutes,
+						"*",
+						"*",
+						"*",
+						"*"
+					);
+				}
+				if(count($schedule) == 5){
+					write_crontab_config($schedule, $script, false);
 				}	
 			}else{
-				$cron = "";
+				clear_crontab_config();
 			}
-
-	
-		if (!file_exists($configDIR)) {
-    		mkdir($configDIR, 0777, true);
-			}
-		chmod($configDIR, 0777);
-		if (!file_exists($cronFile)) {
-    		touch($cronFile);
-		}
-		chmod($cronFile, 0777);
-		file_put_contents($cronFile, $cron);
 	}
 }
 
