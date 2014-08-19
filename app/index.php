@@ -376,7 +376,7 @@ function write_setting_to_file($type, $setting){
 			
 			if($enabled){
 				$schedule = array();
-				if($seconds <= 60){
+				if($seconds < 60){
 					$repeats = 60 / $seconds;
 					$schedule = array(
 						"*/1",
