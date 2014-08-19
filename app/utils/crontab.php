@@ -1,7 +1,7 @@
 <?php
 
 function write_crontab_config($schedule, $command, $append=false){
-	$configDIR = __DIR__.'/../config';
+	$configDIR = __DIR__.'/../../config';
 	$cronFile = $configDIR.'/trend.cron';
 	if(count($schedule) == 5){
 		$jobs = '';
@@ -23,7 +23,7 @@ function write_crontab_config($schedule, $command, $append=false){
 }
 
 function clear_crontab_config(){
-	$configDIR = __DIR__.'/../config';
+	$configDIR = __DIR__.'/../../config';
 	$cronFile = $configDIR.'/trend.cron';
 	if (!file_exists($configDIR)) {
 		mkdir($configDIR, 0777, true);
