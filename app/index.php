@@ -405,7 +405,7 @@ function write_setting_to_file($type, $setting){
 	}
 }
 
-$app->get('/api/settings[/]?{type:[A-Z_]*}', function() use ($app) {
+$app->get('/api/settings[/]?{type:[a-zA-Z_]*}', function() use ($app) {
 	if(checkAuthToken($app)){
 		$type = $app->request->get('type');
 	
