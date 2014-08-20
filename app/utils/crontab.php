@@ -10,7 +10,7 @@ function write_crontab_config($schedule, $command, $append=false){
 			$old_jobs = shell_exec('crontab -l');
 			$jobs = $old_jobs.$new_job;		
 		}else{
-			$jobs = $new_job;
+			$jobs = $new_job." &> /dev/null";
 		}
 		
 		if (!file_exists($configDIR)) {

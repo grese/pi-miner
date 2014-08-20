@@ -3,6 +3,7 @@ require_once(__DIR__.'/utils/helpers.php');
 require_once(__DIR__.'/utils/auth.php');
 require_once(__DIR__.'/utils/cgminer-api.php');
 require_once(__DIR__.'/utils/crontab.php');
+require_once(__DIR__.'/utils/mailer.php');
 
 date_default_timezone_set('America/Los_Angeles');
 
@@ -587,6 +588,49 @@ $app->get('/api/trends/collect', function() use ($app){
 // ===================================================================== 
 //   OTHER ROUTES:
 // ===================================================================== 
+$app->get('/api/notify', function() use ($app){
+	$phql = "SELECT * FROM Setting WHERE type = :type: || type = :type2: || type = :type3:";
+	$settings = $app->modelsManager->executeQuery($phql, array(
+		'type'=>'PERFORMANCE_ALERT',
+		'type2'=>'EMAIL_NOTIFICATION',
+		'type2'=>'DEVICE_INFO',
+	));
+	
+	$perf_config = null;
+	$info_config = null;
+	$notify_config = null;
+	
+	foreach($settings as $setting){
+		if($setting->type == 'PERFORMANCE_ALERT'){
+			$perf_config = json_decode($setting->value);
+		}else if($setting->type == 'EMAIL_NOTIFICATION'){
+			$notify_config = json_decode($setting->value);
+		}else if($setting->type == 'DEVICE_INFO'){
+			$info_config = json_decode($setting->value);
+		}
+	}
+		
+	$response = new Phalcon\Http\Response();
+		
+	if($notify_config == false || $perf_config == false){
+		$response->setJsonContent("<ERROR>: No PERFORMANCE_ALERT email configuration found.");
+	}else{
+		$device_name = ($info_config && $info_config->name) ? $info_config->name : 'Pi Miner';
+		$auth = $notify_config->smtpAuth;
+		$auth = (!$auth || $auth == 'false' || $auth == 0) ? false : true;
+		$config = array(
+			'to'=>$notify_config->toAddress,
+			'subject'=>'['.$device_name.'] - Performance Alert',
+			'body'=>'HELLEAU WHIRRLED!',
+			'host'=>$notify_config->smtpServer,
+			'username'=>$notify_config->smtpAuthUsername,
+			'password'=>$notify_config->smtpAuthPassword,
+			'port'=>$notify_config->smtpAuthPort
+		);
+		$mailer = new Mailer($config, $auth);
+		$mailer->send();
+	}
+});
 $app->notFound(function () use ($app) {
     $app->response->setStatusCode(404, "Not Found")->sendHeaders();
     echo 'That api endpoint does not seem to exist :(';
