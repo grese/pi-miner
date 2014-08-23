@@ -17,7 +17,7 @@ read -r $custom_config<$custom_file
 if [ -n "$custom_config" ]; then
     # If the miner config is not empty... Use it instead of default.
     # Start the miner...
-    eval `sudo nohup $custom_config &> $miner_log`
+    nohup  $custom_config > /dev/null 2>&1&
 else
     # The custom_config file is empty so we will use the miner config...
 

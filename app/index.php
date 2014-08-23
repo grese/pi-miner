@@ -46,6 +46,12 @@ $app->get('/api/cgminer/{command}', function($command) use ($app){
 		$result = null;
 		$cgMinerAPI = new CGMinerAPI();
 		
+		if($command === 'restart'){
+			$result = $cgMinerAPI->request($command);
+			$dbInit = __DIR__.'/../dbinit.sh';
+			exec($dbInit);
+		}
+		
 		if($command === 'devices'){
 			$devices = $cgMinerAPI->request('devs');	
 			$details = $cgMinerAPI->request('devdetails');
@@ -588,6 +594,14 @@ $app->get('/api/trends/collect', function() use ($app){
 // ===================================================================== 
 //   OTHER ROUTES:
 // ===================================================================== 
+$app->get('/api/reboot', function() use ($app){
+	if(checkAuthToken($app)){
+		$reboot = __DIR__.'/../reboot.sh';
+		exec('sudo '.$reboot);
+		$app->response->setStatusCode(200)->sendHeaders();
+	}
+
+});
 $app->get('/api/notify', function() use ($app){
 	$phql = "SELECT * FROM Setting WHERE type = :type: || type = :type2: || type = :type3:";
 	$settings = $app->modelsManager->executeQuery($phql, array(
