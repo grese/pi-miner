@@ -598,7 +598,7 @@ $app->get('/api/reboot', function() use ($app){
 	if(checkAuthToken($app)){
 		$reboot = __DIR__.'/../reboot.sh';
 		exec('sudo '.$reboot);
-		$app->response->setStatusCode(200)->sendHeaders();
+		echo 'REBOOTING';
 	}
 
 });
