@@ -67,7 +67,7 @@
 	       		echo "CREATING pools...\n";
 		   		$create_sql .= $this->pool_schema;
 		   		$pools = array(
-		   			array('name'=>"Slush's Pool", 'url'=>"http://stratum.bitcoin.cz:3333", 'username'=>"grese.piminer", 'password'=>'schroeder', "enabled"=>true));
+		   			array('name'=>"Slush's Pool", 'url'=>"stratum.bitcoin.cz:3333", 'username'=>"grese.piminerdev", 'password'=>'schroeder', "enabled"=>true));
 		   		foreach($pools as $pool){
 			   		array_push($insert_sql, " INSERT INTO pools (name, url, username, password, enabled) VALUES ('".$this->escapeString($pool['name'])."', '".$this->escapeString($pool['url'])."', '".$this->escapeString($pool['username'])."', '".$this->escapeString($pool['password'])."', ".$pool['enabled']."); ");
 		   		}		       

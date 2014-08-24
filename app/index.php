@@ -226,11 +226,9 @@ function write_pools_config_to_file($app){
 	if (!file_exists($configDIR)) {
     	mkdir($configDIR, 0777, true);
 	}
-	chmod($configDIR, 0777);
 	if (!file_exists($configFile)) {
     	touch($configFile);
 	}
-	chmod($configFile, 0777);
 	
 	file_put_contents($configFile, json_encode($config, JSON_UNESCAPED_SLASHES));
 }
@@ -286,13 +284,12 @@ $app->post('/api/pools', function() use ($app) {
 		$pool = $body->pool;
 	
 	    $phql = "INSERT INTO Pool (name, url, username, password, enabled) VALUES (:name:, :url:, :username:, :password:, :enabled:)";
-		$enabled = ($pool->enabled == true) ? "1" : "0";
 	    $status = $app->modelsManager->executeQuery($phql, array(
 	        'name' => $pool->name,
 	        'url' => $pool->url,
 	        'username' => $pool->username,
 	        'password' => $pool->password,
-	        'enabled' => $enabled
+	        'enabled' => $pool->enabled
 	    ));
 	
 	    $response = new Phalcon\Http\Response();
@@ -316,15 +313,14 @@ $app->put('/api/pools/{id:[0-9]+}', function($id) use ($app) {
 	if(checkAuthToken($app)){
 		$body = $app->request->getJsonRawBody();
 		$pool = $body->pool;
-		$enabled = ($pool->enabled == true) ? "1" : "0";
 		$phql = "UPDATE Pool SET name = :name:, url = :url:, username = :username:, password = :password:, enabled = :enabled: WHERE id = :id:";
 		$status = $app->modelsManager->executeQuery($phql, array(
 	        'id' => $id,
 	        'name' => $pool->name,
 	        'url' => $pool->url,
-	        'username' => addslashes($pool->username),
+	        'username' => $pool->username,
 	        'password' => $pool->password,
-	        'enabled' => $enabled
+	        'enabled' => $pool->enabled
 	    ));
 	    $response = new Phalcon\Http\Response();
 	    if ($status->success() == true) {
