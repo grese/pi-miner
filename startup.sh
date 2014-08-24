@@ -3,6 +3,7 @@ db_setup="/home/pi/pi-miner/db/setup.php"
 cgminer_binary="/home/pi/cgminer/cgminer"
 config_dir="/home/pi/pi-miner/config"
 config_file="$config_dir/miner.conf"
+config_args="$config_dir/miner.args"
 custom_file="$config_dir/custom.conf"
 custom_config=""
 
@@ -20,7 +21,9 @@ if [ -n "$custom_config" ]; then
     nohup  $custom_config > /dev/null 2>&1&
 else
     # The custom_config file is empty so we will use the miner config...
+    
+	cgminer_args=`head -n 1 $config_args`
 
     # Start the miner with default config file...
-    nohup  $cgminer_binary --config /home/pi/cgminer/cgminer.conf > /dev/null 2>&1&
+    nohup  $cgminer_binary $cgminer_args --config /home/pi/cgminer/cgminer.conf > /dev/null 2>&1&
 fi

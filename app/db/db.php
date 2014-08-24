@@ -26,7 +26,9 @@
     			url VARCHAR(255),
     			username VARCHAR(50),
 				password VARCHAR(50),
-				enabled BOOLEAN); ";
+				enabled BOOLEAN,
+				quota INTEGER,
+				priority INTEGER); ";
 	   private $trend_schema = " DROP TABLE IF EXISTS trends;
 	   			CREATE TABLE trends
     			(id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -60,17 +62,18 @@
        	   if(!$this->table_exists('users')){
        	   		echo "CREATING users...\n";
 		   		$create_sql .= $this->user_schema;
-		   		array_push($insert_sql, " INSERT INTO users (username, password) VALUES ('".$this->escapeString('grese')."', '".md5('schmiles')."'); ");		   			
+		   		array_push($insert_sql, " INSERT INTO users (username, password) VALUES ('".$this->escapeString('grese')."', '".md5('schmiles')."'); ");
 	       }
 	       
 	       if(!$this->table_exists('pools')){
 	       		echo "CREATING pools...\n";
 		   		$create_sql .= $this->pool_schema;
 		   		$pools = array(
-		   			array('name'=>"Slush's Pool", 'url'=>"stratum.bitcoin.cz:3333", 'username'=>"grese.piminerdev", 'password'=>'schroeder', "enabled"=>true));
+		   			array('name'=>"Slush's Pool", 'url'=>"stratum.bitcoin.cz:3333", 'username'=>"grese.piminerdev", 'password'=>'schroeder', "enabled"=>true, "quota"=>1, "priority"=>0),
+		   			array('name'=>"BTC Guild", 'url'=>"stratum.btcguild.com:3333", 'username'=>"grese_piminerdev", 'password'=>'123', "enabled"=>true, "quota"=>1,"priority"=>1));
 		   		foreach($pools as $pool){
-			   		array_push($insert_sql, " INSERT INTO pools (name, url, username, password, enabled) VALUES ('".$this->escapeString($pool['name'])."', '".$this->escapeString($pool['url'])."', '".$this->escapeString($pool['username'])."', '".$this->escapeString($pool['password'])."', ".$pool['enabled']."); ");
-		   		}		       
+			   		array_push($insert_sql, " INSERT INTO pools (name, url, username, password, enabled, quota, priority) VALUES ('".$this->escapeString($pool['name'])."', '".$this->escapeString($pool['url'])."', '".$this->escapeString($pool['username'])."', '".$this->escapeString($pool['password'])."', ".$pool['enabled'].", ".$pool['quota'].", ".$pool['priority']."); ");
+		   		}		    
 	       }
 	       
 	       if(!$this->table_exists('settings')){
@@ -78,6 +81,7 @@
 		       $create_sql .= $this->setting_schema;
 			   $settings = array(
 			   		array('type'=>'DEVICE_INFO', 'value'=>"{\"name\": \"Pi Miner\" }"),
+			   		array('type'=>'POOL_STRATEGY', 'value'=>"{\"strategy\": \"BALANCE\" }"),
 			   		array('type'=>'MINER_CONFIG', 'value'=>"{\"miner\": \"cgminer\" }"),
 			   		array('type'=>'EMAIL_NOTIFICATION', 'value'=>"{\"toAddress\": \"johngrese@me.com\",\"fromAddress\": \"johngrese@me.com\", \"smtpServer\": \"smtp.mail.me.com\", \"smtpAuth\": true, \"smtpAuthUsername\": \"johngrese@me.com\", \"smtpAuthPassword\": \"SchroederRock5\", \"smtpAuthPort\": 587 }"),
 			   		array('type'=>'ANALYTICS_CONFIG', 'value'=>"{\"dataCollectionEnabled\": true, \"dataInterval\": 60 }"),
@@ -115,15 +119,21 @@
        }
        
        public function init_config(){
-       		$configJSON = '{"pools":[{"url":"stratum.bitcoin.cz:3333","user":"grese.piminerdev","pass":"schroeder"}],"api-listen":true,"api-port":"4028","expiry":"120","failover-only":true,"log":"5","no-pool-disable":true,"queue":"2","scan-time":"60","worktime":true,"shares":"0","kernel-path":"/usr/local/bin","api-allow":"W:127.0.0.1","icarus-options":"115200:1:1","icarus-timing":"3.0=100"}';
+       		$configJSON = '{"pools":[{"quota":"1;stratum.bitcoin.cz:3333","user":"grese.piminerdev","pass":"schroeder"},{"quota":"1;stratum.btcguild.com:3333","user":"grese_piminerdev","pass":"123"}],"api-listen":true,"api-port":"4028","expiry":"120","failover-only":true,"log":"5","no-pool-disable":true,"queue":"2","scan-time":"60","worktime":true,"shares":"0","kernel-path":"/usr/local/bin","api-allow":"W:127.0.0.1","icarus-options":"115200:1:1","icarus-timing":"3.0=100"}';
 		$configDir = __DIR__."/../../config";
           	$configFile = $configDir."/miner.config";
+          	$argsFile = $configDir."/miner.args";
           	if (!file_exists($configDir)) {
                		mkdir($configDir, 0777, true);
           	}
           	if(!file_exists($configFile)){
           		file_put_contents($configFile, $configJSON);
           		chmod($configFile, 0777);
+          	}
+          	if (!file_exists($argsFile)) {
+          		$args = "--balance";
+               	file_put_contents($argsFile, $args);
+          		chmod($argsFile, 0777);
           	}
        }
    }

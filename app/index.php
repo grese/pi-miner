@@ -191,16 +191,31 @@ $app->put('/api/users/{id:[0-9]+}', function($id) use ($app) {
 //   POOLS ROUTES:
 // ===================================================================== 
 function write_pools_config_to_file($app){
-	$phql = "SELECT * FROM Pool WHERE enabled = 1";
+	$phql = "SELECT * FROM Pool WHERE enabled = 1 ORDER BY priority";
 	$pools = $app->modelsManager->executeQuery($phql);
+	
+	$phql = "SELECT * FROM Setting WHERE type = :type:";
+	$setting = $app->modelsManager->executeQuery($phql, array(
+		'type'=>'POOL_STRATEGY'
+	))->getFirst();
+	$setting_value = json_decode(stripslashes($setting->value), true);
+	$no_quota = ($setting_value->strategy === 'LOAD_BALANCE') ? false : true;
+	
 	$data = array();
 	foreach($pools as $pool){
 		$url = preg_replace('#^https?://#', '', $pool->url);
-		$data[] = array(
-			'url'=>$url,
+		$pool_data = array(
 			'user' => $pool->username,
 			'pass' => $pool->password
 		);
+		if($no_quota){
+			$pool_data['url']=$url;
+		}else{
+			$quota = $pool->quota > 0 ? $pool->quota : 1;
+			$quota = $quota.';'.$url;
+			$pool_data['quota']=$quota;
+		}
+		$data[] = $pool_data;
 	}
 	$config = array(
 	"pools"=> $data,
@@ -245,7 +260,8 @@ $app->get('/api/pools', function() use ($app) {
 				'url'=>$pool->url,
 				'username' => $pool->username,
 				'password' => $pool->password,
-				'enabled' => $enabled
+				'enabled' => $enabled,
+				'quota'=> $pool->quota
 			);
 		}
 		echo json_encode($data);
@@ -271,7 +287,8 @@ $app->get('/api/pools/{id:[0-9]+}', function($id) use ($app) {
 					'url'=>$pool->url,
 					'username' => $pool->username,
 					'password' => $pool->password,
-					'enabled' => $enabled
+					'enabled' => $enabled,
+					'quota'=> $pool->quota
 	            )
 	        ));
 		}
@@ -290,7 +307,8 @@ $app->post('/api/pools', function() use ($app) {
 	        'url' => $pool->url,
 	        'username' => $pool->username,
 	        'password' => $pass,
-	        'enabled' => $pool->enabled
+	        'enabled' => $pool->enabled,
+	        'quota'=> $pool->quota
 	    ));
 	
 	    $response = new Phalcon\Http\Response();
@@ -306,6 +324,7 @@ $app->post('/api/pools', function() use ($app) {
 	        }
 	        $response->setJsonContent(array('status' => 'ERROR', 'messages' => $errors));
 	    }
+	    
 	    write_pools_config_to_file($app);
 	    return $response;
 	}
@@ -322,7 +341,8 @@ $app->put('/api/pools/{id:[0-9]+}', function($id) use ($app) {
 	        'url' => $pool->url,
 	        'username' => $pool->username,
 	        'password' => $pass,
-	        'enabled' => $pool->enabled
+	        'enabled' => $pool->enabled,
+	        'quota'=> $pool->quota
 	    ));
 	    $response = new Phalcon\Http\Response();
 	    if ($status->success() == true) {
@@ -368,13 +388,28 @@ $app->delete('/api/pools/{id:[0-9]+}', function($id) use ($app) {
 // ===================================================================== 
 //   SETTINGS ROUTES:
 // ===================================================================== 
-function write_setting_to_file($type, $setting){
+function write_setting_to_file($app, $type, $setting){
 	$configDIR = __DIR__.'/../config';
 	$customFile = $configDIR.'/custom.config';
+	$argsFile = $configDIR.'/miner.args';
 
 	$script = __DIR__.'/analytics.sh';
 	if($type === 'MINER_CONFIG'){
 		file_put_contents($customFile, $setting->config);
+	}else if($type === 'POOL_STRATEGY'){
+		$miner_args = "";
+		if($setting->strategy === 'ROUND_ROBIN'){
+			$miner_args = "--round-robin";
+		}else if($setting->strategy === 'ROTATE'){
+			$interval = $setting->interval;
+			$miner_args = "--rotate ".$interval;
+		}else if($setting->strategy === 'LOAD_BALANCE'){
+			$miner_args = "--load-balance";
+		}else if($setting->strategy === 'BALANCE'){
+			$miner_args = "--balance";
+		}
+		file_put_contents($argsFile, $miner_args);
+		write_pools_config_to_file($app);
 	}else if($type === 'ANALYTICS_CONFIG'){
 			$enabled = $setting->dataCollectionEnabled;
 			$seconds = $setting->dataInterval;
@@ -448,7 +483,7 @@ $app->get('/api/settings/{id:[0-9]+}', function($id) use ($app) {
 	            'setting' => array(
 	                'id' => $setting->id,
 	                'type' => $setting->type,
-	                'value'=>$setting->value
+	                'value'=>$value_json
 	            )
 	        ));
 		}
@@ -471,7 +506,7 @@ $app->post('/api/settings', function() use ($app) {
 	        $response->setStatusCode(201, "Created");
 	        $setting->id = $status->getModel()->id;
 	        $response->setJsonContent($setting);
-	        write_setting_to_file($setting->type, $setting->value);
+	        write_setting_to_file($app, $setting->type, $setting->value);
 	    } else {
 	        $response->setStatusCode(409, "Conflict");
 	        $errors = array();
@@ -499,7 +534,7 @@ $app->put('/api/settings/{id}', function($id) use ($app) {
 	    if ($status->success() == true) {
 	    	$setting->id = $id;
 			$response->setJsonContent($setting);
-			write_setting_to_file($setting->type, $setting->value);
+			write_setting_to_file($app, $setting->type, $setting->value);
 	    } else {
 	        $response->setStatusCode(409, "Conflict");
 	        $errors = array();
