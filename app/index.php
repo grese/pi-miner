@@ -198,10 +198,8 @@ function write_pools_config_to_file($app){
 	$setting = $app->modelsManager->executeQuery($phql, array(
 		'type'=>'POOL_STRATEGY'
 	))->getFirst();
-	$setting_value = json_decode(stripslashes($setting->value), true);
-	echo 'THE VALUE: '.print_r($setting_value);
+	$setting_value = json_decode(stripslashes($setting->value));
 	$has_quota = ($setting_value->strategy === 'LOAD_BALANCE') ? true : false;
-	
 	$data = array();
 	foreach($pools as $pool){
 		$url = preg_replace('#^https?://#', '', $pool->url);

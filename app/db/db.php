@@ -81,7 +81,7 @@
 		       $create_sql .= $this->setting_schema;
 			   $settings = array(
 			   		array('type'=>'DEVICE_INFO', 'value'=>"{\"name\": \"Pi Miner\" }"),
-			   		array('type'=>'POOL_STRATEGY', 'value'=>"{\"strategy\": \"BALANCE\" }"),
+			   		array('type'=>'POOL_STRATEGY', 'value'=>"{\"strategy\": \"LOAD_BALANCE\" }"),
 			   		array('type'=>'MINER_CONFIG', 'value'=>"{\"miner\": \"cgminer\" }"),
 			   		array('type'=>'EMAIL_NOTIFICATION', 'value'=>"{\"toAddress\": \"johngrese@me.com\",\"fromAddress\": \"johngrese@me.com\", \"smtpServer\": \"smtp.mail.me.com\", \"smtpAuth\": true, \"smtpAuthUsername\": \"johngrese@me.com\", \"smtpAuthPassword\": \"SchroederRock5\", \"smtpAuthPort\": 587 }"),
 			   		array('type'=>'ANALYTICS_CONFIG', 'value'=>"{\"dataCollectionEnabled\": true, \"dataInterval\": 60 }"),
