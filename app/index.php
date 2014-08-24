@@ -340,6 +340,7 @@ $app->put('/api/pools/{id:[0-9]+}', function($id) use ($app) {
 		$pass = ($pool->password != null) ? $pool->password : "";
 		$phql = "UPDATE Pool SET name = :name:, url = :url:, username = :username:, password = :password:, enabled = :enabled:, priority = :priority: WHERE id = :id:";
 		$enabled = $pool->enabled == true ? "1" : "0";
+		echo "THE PRIORITY: ".$pool->priority;
 		$status = $app->modelsManager->executeQuery($phql, array(
 	        'id' => $id,
 	        'name' => $pool->name,
