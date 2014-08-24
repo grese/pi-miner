@@ -15,6 +15,7 @@ class Pool extends Model
 	public $password;
 	public $enabled;
 	public $quota;
+	public $priority;
 	
 	public function getSource(){
 		return 'pools';
