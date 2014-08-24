@@ -16,7 +16,7 @@ class Setting extends Model
 		$this->validate(new InclusionIn(
             array(
                 "field"  => "type",
-                "domain" => array("EMAIL_NOTIFICATION", "DEVICE_INFO", "MINER_CONFIG", "ANALYTICS_CONFIG", "PERFORMANCE_ALERT")
+                "domain" => array("EMAIL_NOTIFICATION", "DEVICE_INFO", "MINER_CONFIG", "ANALYTICS_CONFIG", "PERFORMANCE_ALERT", "POOL_STRATEGY")
             )
         ));
         
