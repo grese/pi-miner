@@ -284,11 +284,12 @@ $app->post('/api/pools', function() use ($app) {
 		$pool = $body->pool;
 	
 	    $phql = "INSERT INTO Pool (name, url, username, password, enabled) VALUES (:name:, :url:, :username:, :password:, :enabled:)";
+	    $pass = ($pool->password != null) ? $pool->password : "";
 	    $status = $app->modelsManager->executeQuery($phql, array(
 	        'name' => $pool->name,
 	        'url' => $pool->url,
 	        'username' => $pool->username,
-	        'password' => $pool->password,
+	        'password' => $pass,
 	        'enabled' => $pool->enabled
 	    ));
 	
@@ -313,13 +314,14 @@ $app->put('/api/pools/{id:[0-9]+}', function($id) use ($app) {
 	if(checkAuthToken($app)){
 		$body = $app->request->getJsonRawBody();
 		$pool = $body->pool;
+		$pass = ($pool->password != null) ? $pool->password : "";
 		$phql = "UPDATE Pool SET name = :name:, url = :url:, username = :username:, password = :password:, enabled = :enabled: WHERE id = :id:";
 		$status = $app->modelsManager->executeQuery($phql, array(
 	        'id' => $id,
 	        'name' => $pool->name,
 	        'url' => $pool->url,
 	        'username' => $pool->username,
-	        'password' => $pool->password,
+	        'password' => $pass,
 	        'enabled' => $pool->enabled
 	    ));
 	    $response = new Phalcon\Http\Response();
