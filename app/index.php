@@ -199,7 +199,8 @@ function write_pools_config_to_file($app){
 		'type'=>'POOL_STRATEGY'
 	))->getFirst();
 	$setting_value = json_decode(stripslashes($setting->value), true);
-	$no_quota = ($setting_value->strategy === 'LOAD_BALANCE') ? false : true;
+	echo 'THE VALUE: '.print_r($setting_value);
+	$has_quota = ($setting_value->strategy === 'LOAD_BALANCE') ? true : false;
 	
 	$data = array();
 	foreach($pools as $pool){
@@ -208,12 +209,12 @@ function write_pools_config_to_file($app){
 			'user' => $pool->username,
 			'pass' => $pool->password
 		);
-		if($no_quota){
-			$pool_data['url']=$url;
-		}else{
+		if($has_quota){
 			$quota = $pool->quota > 0 ? $pool->quota : 1;
 			$quota = $quota.';'.$url;
 			$pool_data['quota']=$quota;
+		}else{
+			$pool_data['url']=$url;
 		}
 		$data[] = $pool_data;
 	}
