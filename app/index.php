@@ -304,12 +304,13 @@ $app->post('/api/pools', function() use ($app) {
 	
 	    $phql = "INSERT INTO Pool (name, url, username, password, enabled, priority) VALUES (:name:, :url:, :username:, :password:, :enabled:, :priority:)";
 	    $pass = ($pool->password != null) ? $pool->password : "";
+	    $enabled = $pool->enabled == true ? "1" : "0";
 	    $status = $app->modelsManager->executeQuery($phql, array(
 	        'name' => $pool->name,
 	        'url' => $pool->url,
 	        'username' => $pool->username,
 	        'password' => $pass,
-	        'enabled' => $pool->enabled,
+	        'enabled' => $enabled,
 	        'quota'=> $pool->quota,
 	        'priority'=> $pool->priority
 	    ));
@@ -338,13 +339,14 @@ $app->put('/api/pools/{id:[0-9]+}', function($id) use ($app) {
 		$pool = $body->pool;
 		$pass = ($pool->password != null) ? $pool->password : "";
 		$phql = "UPDATE Pool SET name = :name:, url = :url:, username = :username:, password = :password:, enabled = :enabled:, priority = :priority: WHERE id = :id:";
+		$enabled = $pool->enabled == true ? "1" : "0";
 		$status = $app->modelsManager->executeQuery($phql, array(
 	        'id' => $id,
 	        'name' => $pool->name,
 	        'url' => $pool->url,
 	        'username' => $pool->username,
 	        'password' => $pass,
-	        'enabled' => $pool->enabled,
+	        'enabled' => $enabled,
 	        'quota'=> $pool->quota,
 	        'priority'=> $pool->priority
 	    ));
