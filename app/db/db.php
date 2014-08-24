@@ -131,7 +131,7 @@
           		chmod($configFile, 0777);
           	}
           	if (!file_exists($argsFile)) {
-          		$args = "--balance";
+          		$args = "--load-balance";
                	file_put_contents($argsFile, $args);
           		chmod($argsFile, 0777);
           	}
