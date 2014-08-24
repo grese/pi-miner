@@ -249,7 +249,7 @@ function write_pools_config_to_file($app){
 }
 $app->get('/api/pools', function() use ($app) {
 	if(checkAuthToken($app)){
-		$phql = "SELECT * FROM Pool";
+		$phql = "SELECT * FROM Pool ORDER BY priority";
 		$pools = $app->modelsManager->executeQuery($phql);
 		$data = array();
 		foreach($pools as $pool){
@@ -261,7 +261,8 @@ $app->get('/api/pools', function() use ($app) {
 				'username' => $pool->username,
 				'password' => $pool->password,
 				'enabled' => $enabled,
-				'quota'=> $pool->quota
+				'quota'=> $pool->quota,
+				'priority'=> $pool->priority
 			);
 		}
 		echo json_encode($data);
@@ -288,7 +289,8 @@ $app->get('/api/pools/{id:[0-9]+}', function($id) use ($app) {
 					'username' => $pool->username,
 					'password' => $pool->password,
 					'enabled' => $enabled,
-					'quota'=> $pool->quota
+					'quota'=> $pool->quota,
+					'priority'=> $pool->priority
 	            )
 	        ));
 		}
@@ -300,7 +302,7 @@ $app->post('/api/pools', function() use ($app) {
 		$body = $app->request->getJsonRawBody();
 		$pool = $body->pool;
 	
-	    $phql = "INSERT INTO Pool (name, url, username, password, enabled) VALUES (:name:, :url:, :username:, :password:, :enabled:)";
+	    $phql = "INSERT INTO Pool (name, url, username, password, enabled, priority) VALUES (:name:, :url:, :username:, :password:, :enabled:, :priority:)";
 	    $pass = ($pool->password != null) ? $pool->password : "";
 	    $status = $app->modelsManager->executeQuery($phql, array(
 	        'name' => $pool->name,
@@ -308,7 +310,8 @@ $app->post('/api/pools', function() use ($app) {
 	        'username' => $pool->username,
 	        'password' => $pass,
 	        'enabled' => $pool->enabled,
-	        'quota'=> $pool->quota
+	        'quota'=> $pool->quota,
+	        'priority'=> $pool->priority
 	    ));
 	
 	    $response = new Phalcon\Http\Response();
@@ -334,7 +337,7 @@ $app->put('/api/pools/{id:[0-9]+}', function($id) use ($app) {
 		$body = $app->request->getJsonRawBody();
 		$pool = $body->pool;
 		$pass = ($pool->password != null) ? $pool->password : "";
-		$phql = "UPDATE Pool SET name = :name:, url = :url:, username = :username:, password = :password:, enabled = :enabled: WHERE id = :id:";
+		$phql = "UPDATE Pool SET name = :name:, url = :url:, username = :username:, password = :password:, enabled = :enabled:, priority = :priority: WHERE id = :id:";
 		$status = $app->modelsManager->executeQuery($phql, array(
 	        'id' => $id,
 	        'name' => $pool->name,
@@ -342,7 +345,8 @@ $app->put('/api/pools/{id:[0-9]+}', function($id) use ($app) {
 	        'username' => $pool->username,
 	        'password' => $pass,
 	        'enabled' => $pool->enabled,
-	        'quota'=> $pool->quota
+	        'quota'=> $pool->quota,
+	        'priority'=> $pool->priority
 	    ));
 	    $response = new Phalcon\Http\Response();
 	    if ($status->success() == true) {
