@@ -302,7 +302,7 @@ $app->post('/api/pools', function() use ($app) {
 		$body = $app->request->getJsonRawBody();
 		$pool = $body->pool;
 	
-	    $phql = "INSERT INTO Pool (name, url, username, password, enabled, priority) VALUES (:name:, :url:, :username:, :password:, :enabled:, :priority:)";
+	    $phql = "INSERT INTO Pool (name, url, username, password, enabled, quota, priority) VALUES (:name:, :url:, :username:, :password:, :enabled:, :quota:, :priority:)";
 	    $pass = ($pool->password != null) ? $pool->password : "";
 	    $enabled = $pool->enabled == true ? "1" : "0";
 	    $status = $app->modelsManager->executeQuery($phql, array(
@@ -338,9 +338,8 @@ $app->put('/api/pools/{id:[0-9]+}', function($id) use ($app) {
 		$body = $app->request->getJsonRawBody();
 		$pool = $body->pool;
 		$pass = ($pool->password != null) ? $pool->password : "";
-		$phql = "UPDATE Pool SET name = :name:, url = :url:, username = :username:, password = :password:, enabled = :enabled:, priority = :priority: WHERE id = :id:";
+		$phql = "UPDATE Pool SET name = :name:, url = :url:, username = :username:, password = :password:, enabled = :enabled:, quota = :quota:, priority = :priority: WHERE id = :id:";
 		$enabled = $pool->enabled == true ? "1" : "0";
-		echo "THE PRIORITY: ".$pool->priority;
 		$status = $app->modelsManager->executeQuery($phql, array(
 	        'id' => $id,
 	        'name' => $pool->name,
