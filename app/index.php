@@ -220,18 +220,8 @@ function write_pools_config_to_file($app){
 	"pools"=> $data,
         "api-listen" => true,
         "api-port" => "4028",
-        "expiry" => "120",
-        "failover-only" => true,
-        "log" => "5",
-        "no-pool-disable" => true,
-        "queue" => "2",
-        "scan-time" => "60",
-        "worktime" => true,
-        "shares" => "0",
-        "kernel-path" => "/usr/local/bin",
         "api-allow" => "W:127.0.0.1",
-        "icarus-options" => "115200:1:1",
-		"icarus-timing" => "3.0=100"
+        "kernel-path" => "/usr/local/bin"
 	);
 	
 	$configDIR = __DIR__.'/../config';
@@ -673,7 +663,7 @@ $app->get('/api/notify', function() use ($app){
 		$config = array(
 			'to'=>$notify_config->toAddress,
 			'subject'=>'['.$device_name.'] - Performance Alert',
-			'body'=>'HELLEAU WHIRRLED!',
+			'body'=>'One or more of your miners have gone below the performance threshold.',
 			'host'=>$notify_config->smtpServer,
 			'username'=>$notify_config->smtpAuthUsername,
 			'password'=>$notify_config->smtpAuthPassword,
