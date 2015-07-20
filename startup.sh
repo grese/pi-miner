@@ -25,6 +25,5 @@ else
 	bfgminer_args=`head -n 1 $config_args`
 
     # Start the miner with default config file...
-    nohup  $bfgminer_binary $bfgminer_args --config $config_file > /dev/null 2>&1&
-    
+    nohup  $bfgminer_binary $bfgminer_args --config $config_file -S all > /dev/null 2>&1&
 fi
