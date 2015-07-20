@@ -225,7 +225,7 @@ function write_pools_config_to_file($app){
 	);
 	
 	$configDIR = __DIR__.'/../config';
-	$configFile = $configDIR.'/miner.config';
+	$configFile = $configDIR.'/miner-config.json';
 	
 	if (!file_exists($configDIR)) {
     	mkdir($configDIR, 0777, true);

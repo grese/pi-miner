@@ -119,9 +119,9 @@
        }
        
        public function init_config(){
-       		$configJSON = '{"pools":[{"quota":"1;stratum.bitcoin.cz:3333","user":"grese.piminer","pass":"schroeder"},{"quota":"1;stratum.btcguild.com:3333","user":"grese_piminer","pass":"123"}],"api-listen":true,"api-port":"4028","expiry":"120","failover-only":true,"log":"5","no-pool-disable":true,"queue":"2","scan-time":"60","worktime":true,"shares":"0","kernel-path":"/usr/local/bin","api-allow":"W:127.0.0.1","icarus-options":"115200:1:1","icarus-timing":"3.0=100"}';
+       		$configJSON = '{"pools":[{"quota":"1;stratum.bitcoin.cz:3333","user":"grese.piminer","pass":"schroeder"},{"quota":"1;stratum.btcguild.com:3333","user":"grese_piminer","pass":"123"}],"api-listen":true,"api-port":"4028","kernel-path":"/usr/local/bin","api-allow":"W:127.0.0.1"}';
 		$configDir = __DIR__."/../../config";
-          	$configFile = $configDir."/miner.config";
+          	$configFile = $configDir."/miner-config.json";
           	$argsFile = $configDir."/miner.args";
           	if (!file_exists($configDir)) {
                		mkdir($configDir, 0777, true);

@@ -2,7 +2,7 @@
 db_setup="/home/pi/pi-miner/db/setup.php"
 bfgminer_binary="/home/pi/bfgminer/bfgminer"
 config_dir="/home/pi/pi-miner/config"
-config_file="$config_dir/miner.conf"
+config_file="$config_dir/miner-config.json"
 config_args="$config_dir/miner.args"
 custom_file="$config_dir/custom.conf"
 custom_config=""
@@ -25,6 +25,6 @@ else
 	bfgminer_args=`head -n 1 $config_args`
 
     # Start the miner with default config file...
-    nohup  $bfgminer_binary $bfgminer_args --config /home/pi/bfgminer.conf > /dev/null 2>&1&
+    nohup  $bfgminer_binary $bfgminer_args --config $config_file > /dev/null 2>&1&
     
 fi
